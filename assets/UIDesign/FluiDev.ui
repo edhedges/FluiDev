@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>FluiDevMainWindow</class>
+ <widget class="QMainWindow" name="FluiDevMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -110,7 +110,7 @@
    <enum>QTabWidget::Rounded</enum>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="createNewWebsiteButton">
     <property name="geometry">
      <rect>
       <x>480</x>
@@ -128,7 +128,7 @@
      <string>Create a New  Website</string>
     </property>
    </widget>
-   <widget class="QTableWidget" name="tableWidget">
+   <widget class="QTableWidget" name="existingWebsitesDisplay">
     <property name="geometry">
      <rect>
       <x>470</x>
@@ -153,7 +153,7 @@
      </property>
     </column>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="existingWebsitesLabel">
     <property name="geometry">
      <rect>
       <x>550</x>
@@ -176,7 +176,7 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QTreeWidget" name="treeWidget">
+   <widget class="QTreeWidget" name="featureList">
     <property name="geometry">
      <rect>
       <x>60</x>
@@ -286,7 +286,7 @@
      </item>
     </item>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="titleLabel">
     <property name="geometry">
      <rect>
       <x>60</x>
@@ -309,7 +309,7 @@
      <set>Qt::AlignBottom|Qt::AlignHCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_3">
+   <widget class="QLabel" name="authorLabel">
     <property name="geometry">
      <rect>
       <x>60</x>
@@ -335,7 +335,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLabel" name="label_4">
+   <widget class="QLabel" name="featuresLabel">
     <property name="geometry">
      <rect>
       <x>130</x>
@@ -391,7 +391,7 @@
     <property name="title">
      <string>Simple Web</string>
     </property>
-    <addaction name="actionTest"/>
+    <addaction name="actionInfo"/>
    </widget>
    <addaction name="menuSimple_Web"/>
    <addaction name="menuFile"/>
@@ -502,7 +502,7 @@
     <string>Quit</string>
    </property>
   </action>
-  <action name="actionTest">
+  <action name="actionInfo">
    <property name="text">
     <string>Info</string>
    </property>
