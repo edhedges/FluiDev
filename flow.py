@@ -19,6 +19,7 @@ from PySide.QtGui import QApplication, QMainWindow, QDialog, QFileDialog, \
 # UI Design module imports
 from FluiDevUI import *
 from NewWebsiteDialogUI import *
+from ExistingDirectoryDialogUI import *
 
 
 class NewWebsiteDialog(QDialog):
@@ -60,6 +61,7 @@ class NewWebsiteDialog(QDialog):
         self.website_containing_path = ''
         self.full_website_path = ''
         self.website_skeleton_path = os.getcwd() + '/assets/skeleton'
+        self.warning_is_showing = False
         self.ui = NewWebsiteDialogUIDesign()
         self.ui.setupUi(self)
         self.ui.chooseLocationButton.setDisabled(True)
@@ -96,15 +98,14 @@ class NewWebsiteDialog(QDialog):
         """
         self.website_name = self.ui.websiteNameTextField.text()
         if self.ui.locationTextField.text():
-            self.ui.locationTextField.setText(
-                self.website_containing_path +
-                '/' +
-                self.website_name
-            )
+            self.full_website_path = self.website_containing_path + '/' + self.website_name
+            self.ui.locationTextField.setText(self.full_website_path)
+            self.existingDirectoryCheck()
         choose_location_enabled = self.ui.chooseLocationButton.isEnabled()
         if choose_location_enabled and not self.website_name:
             self.ui.chooseLocationButton.setEnabled(False)
             self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+            self.hideWarningLabels()
         elif not choose_location_enabled:
             self.ui.chooseLocationButton.setEnabled(True)
             if self.ui.locationTextField.text():
@@ -127,13 +128,16 @@ class NewWebsiteDialog(QDialog):
         the QDialogButtonBox.Ok button is enabled and set as the default
         option.
         """
-        self.website_containing_path = QFileDialog().getExistingDirectory(
-                self,
-                "Choose location for website",
-                "/"
-            )
+        chosen_location = QFileDialog().getExistingDirectory(
+            self,
+            "Choose location for website",
+            "/"
+        )
+        if chosen_location:
+            self.website_containing_path = chosen_location
         if self.website_containing_path:
             self.full_website_path = self.website_containing_path + '/' + self.website_name
+            self.existingDirectoryCheck()
             self.ui.locationTextField.setText(self.full_website_path)
             self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setEnabled(True)
             self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setDefault(True)
@@ -157,11 +161,37 @@ class NewWebsiteDialog(QDialog):
 
         self.full_website_path = self.website_containing_path + '/' + self.website_name
         try:
+            shutil.rmtree(self.full_website_path)
             shutil.copytree(self.website_skeleton_path, self.full_website_path)
         except OSError:
-            # Open dialog asking if they would like to overwrite file
-            # depending on the answer either do nothing or overwite away
             pass
+
+    def existingDirectoryCheck(self):
+        """
+        TODO
+        """
+        if os.path.exists(self.full_website_path) and not self.warning_is_showing:
+            warning_title = 'Warning:'
+            warning_message = 'Clicking the Ok button will overwrite an existing folder.'
+            self.showWarningLabels(warning_title, warning_message)
+        else:
+            self.hideWarningLabels()
+
+    def showWarningLabels(self, warning_title, warning_message):
+        """
+        TODO
+        """
+        self.warning_is_showing = True
+        self.ui.warningTitleLabel.setText(warning_title)
+        self.ui.warningContentLabel.setText(warning_message)
+
+    def hideWarningLabels(self):
+        """
+        TODO
+        """
+        self.warning_is_showing = False
+        self.ui.warningTitleLabel.clear()
+        self.ui.warningContentLabel.clear()
 
 
 class FluiDevWindow(QMainWindow):
@@ -195,11 +225,8 @@ class FluiDevWindow(QMainWindow):
         the `Create a New Website` button.
 
         newWebsiteDialog - creates a QDialog of type NewWesbsitePrompt.
-        The dialog is then set to modal so it retains focus and is shown
-        and executed.
         """
         newWebsiteDialog = NewWebsiteDialog()
-        newWebsiteDialog.setModal(True)
         newWebsiteDialog.show()
         newWebsiteDialog.exec_()
 

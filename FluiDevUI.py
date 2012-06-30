@@ -48,7 +48,7 @@ class FluiDevUIDesign(object):
         self.createNewWebsiteButton.setFont(font)
         self.createNewWebsiteButton.setObjectName("createNewWebsiteButton")
         self.existingWebsitesDisplay = QtGui.QTableWidget(self.centralwidget)
-        self.existingWebsitesDisplay.setGeometry(QtCore.QRect(470, 160, 321, 311))
+        self.existingWebsitesDisplay.setGeometry(QtCore.QRect(480, 160, 302, 311))
         self.existingWebsitesDisplay.setObjectName("existingWebsitesDisplay")
         self.existingWebsitesDisplay.setColumnCount(3)
         self.existingWebsitesDisplay.setRowCount(0)

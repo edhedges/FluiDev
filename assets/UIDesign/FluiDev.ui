@@ -131,9 +131,9 @@
    <widget class="QTableWidget" name="existingWebsitesDisplay">
     <property name="geometry">
      <rect>
-      <x>470</x>
+      <x>480</x>
       <y>160</y>
-      <width>321</width>
+      <width>302</width>
       <height>311</height>
      </rect>
     </property>
