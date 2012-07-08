@@ -9,17 +9,76 @@
 
 # Python stdlib imports
 import os
-import sys
 import shutil
+import sqlite3
+import sys
 
 # PySide module imports
 from PySide.QtGui import QApplication, QMainWindow, QDialog, QFileDialog, \
-    QDialogButtonBox
+    QDialogButtonBox, QTableWidgetItem
 
 # UI Design module imports
 from FluiDevUI import *
 from NewWebsiteDialogUI import *
-from ExistingDirectoryDialogUI import *
+
+
+class FluiDevWebsite(object):
+    """
+    TODO
+    """
+    def __init__(self, website_name, website_path, date_created, date_edited):
+        """
+        TODO
+        """
+        super(FluiDevWebsite, self).__init__()
+        self.website_name = website_name
+        self.website_path = website_path
+        self.date_created = date_created
+        self.date_edited = date_edited
+
+    @staticmethod
+    def create(conn, website_name, website_path, date_created, date_edited):
+        cursor = conn.cursor()
+        query = """INSERT INTO FluiDevWebsite VALUES(
+            NULL, :website_name, :website_path, :date_created, :date_edited
+        )"""
+        cursor.execute(
+            query,
+            {
+                'website_name': website_name,
+                'website_path': website_name,
+                'date_created': date_created,
+                'date_edited': date_edited
+            }
+        )
+        cursor.close()
+
+    @staticmethod
+    def read(conn, column_names, table_name):
+        """
+        TODO
+        """
+        fd_websites = list()
+        cursor = conn.cursor()
+        query = "SELECT %s FROM %s" % (column_names, table_name)
+        cursor.execute(query)
+        read_data = cursor.fetchall()
+        cursor.close()
+        for row in read_data:
+            fd_websites.append(FluiDevWebsite(row[0], row[1], row[2], row[3]))
+        return fd_websites
+
+    @staticmethod
+    def update(conn):
+        pass
+
+    @staticmethod
+    def delete(conn):
+        #cursor = conn.cursor()
+        #query = "DELETE FROM FluiDevWebsite"
+        # DELETE FROM `table_name` ??? WHERE clause ???
+        cursor.close()
+        pass
 
 
 class NewWebsiteDialog(QDialog):
@@ -61,14 +120,19 @@ class NewWebsiteDialog(QDialog):
         self.website_containing_path = ''
         self.full_website_path = ''
         self.website_skeleton_path = os.getcwd() + '/assets/skeleton'
-        self.warning_is_showing = False
+        self.showing_warning = False
         self.ui = NewWebsiteDialogUIDesign()
         self.ui.setupUi(self)
+
         self.ui.chooseLocationButton.setDisabled(True)
         self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setDisabled(True)
-        self.ui.websiteNameTextField.textChanged.connect(self.nameOfWebsiteChanged)
+        self.ui.websiteNameTextField.textChanged.connect(
+            self.nameOfWebsiteChanged
+        )
         self.ui.okCancelButtonBox.accepted.connect(self.createNewWebsite)
-        self.ui.chooseLocationButton.clicked.connect(self.chooseWebsiteLocation)
+        self.ui.chooseLocationButton.clicked.connect(
+            self.chooseWebsiteLocation
+        )
 
     def nameOfWebsiteChanged(self):
         """
@@ -98,19 +162,27 @@ class NewWebsiteDialog(QDialog):
         """
         self.website_name = self.ui.websiteNameTextField.text()
         if self.ui.locationTextField.text():
-            self.full_website_path = self.website_containing_path + '/' + self.website_name
+            self.full_website_path = (
+                self.website_containing_path +
+                '/' +
+                self.website_name
+            )
             self.ui.locationTextField.setText(self.full_website_path)
             self.existingDirectoryCheck()
         choose_location_enabled = self.ui.chooseLocationButton.isEnabled()
         if choose_location_enabled and not self.website_name:
             self.ui.chooseLocationButton.setEnabled(False)
-            self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+            self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setEnabled(
+                False
+            )
             self.hideWarningLabels()
         elif not choose_location_enabled:
             self.ui.chooseLocationButton.setEnabled(True)
             if self.ui.locationTextField.text():
-                self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setEnabled(True)
-                self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setDefault(True)
+                self.ui.okCancelButtonBox.button(
+                    QDialogButtonBox.Ok).setEnabled(True)
+                self.ui.okCancelButtonBox.button(
+                    QDialogButtonBox.Ok).setDefault(True)
 
     def chooseWebsiteLocation(self):
         """
@@ -136,11 +208,19 @@ class NewWebsiteDialog(QDialog):
         if chosen_location:
             self.website_containing_path = chosen_location
         if self.website_containing_path:
-            self.full_website_path = self.website_containing_path + '/' + self.website_name
+            self.full_website_path = (
+                self.website_containing_path +
+                '/' +
+                self.website_name
+            )
             self.existingDirectoryCheck()
             self.ui.locationTextField.setText(self.full_website_path)
-            self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setEnabled(True)
-            self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setDefault(True)
+            self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setEnabled(
+                True
+            )
+            self.ui.okCancelButtonBox.button(QDialogButtonBox.Ok).setDefault(
+                True
+            )
 
     def createNewWebsite(self):
         """
@@ -159,10 +239,15 @@ class NewWebsiteDialog(QDialog):
         control.
         """
 
-        self.full_website_path = self.website_containing_path + '/' + self.website_name
+        self.full_website_path = (
+            self.website_containing_path +
+            '/' +
+            self.website_name
+        )
         try:
             shutil.rmtree(self.full_website_path)
             shutil.copytree(self.website_skeleton_path, self.full_website_path)
+            ## Add this website to the list of FluiDevWebsite right here ##
         except OSError:
             pass
 
@@ -170,9 +255,11 @@ class NewWebsiteDialog(QDialog):
         """
         TODO
         """
-        if os.path.exists(self.full_website_path) and not self.warning_is_showing:
+        if os.path.exists(self.full_website_path) and not self.showing_warning:
             warning_title = 'Warning:'
-            warning_message = 'Clicking the Ok button will overwrite an existing folder.'
+            warning_message = """Clicking the Ok button will overwrite an
+                              existing folder.
+                              """
             self.showWarningLabels(warning_title, warning_message)
         else:
             self.hideWarningLabels()
@@ -181,7 +268,7 @@ class NewWebsiteDialog(QDialog):
         """
         TODO
         """
-        self.warning_is_showing = True
+        self.showing_warning = True
         self.ui.warningTitleLabel.setText(warning_title)
         self.ui.warningContentLabel.setText(warning_message)
 
@@ -189,7 +276,7 @@ class NewWebsiteDialog(QDialog):
         """
         TODO
         """
-        self.warning_is_showing = False
+        self.showing_warning = False
         self.ui.warningTitleLabel.clear()
         self.ui.warningContentLabel.clear()
 
@@ -203,11 +290,14 @@ class FluiDevWindow(QMainWindow):
     one can view FluiDev features, create a new website, and resume work
     on existing projects.
     """
-
-    def __init__(self, parent=None):
+    def __init__(self, fd_websites, parent=None):
         """
         Initializes the FluiDevWindow class by declaring the UI design
         and connecting the necessary signals and slots.
+
+        self.existing_website_paths - this will hold the apps existing
+        website paths and will get then be used to create a list of type
+        FluiDevWebsite.
 
         self.ui - this will hold the QMainWindow object with the design
         from FluiDevWindow. After the UI is setup then the `Create a
@@ -215,9 +305,36 @@ class FluiDevWindow(QMainWindow):
         `createNewWebsiteButtonPushed` slot.
         """
         super(FluiDevWindow, self).__init__(parent)
+        self.fd_websites = fd_websites
         self.ui = FluiDevUIDesign()
         self.ui.setupUi(self)
-        self.ui.createNewWebsiteButton.clicked.connect(self.createNewWebsiteButtonPushed)
+        self.populateExistingFluiDevWebsites()
+        self.ui.createNewWebsiteButton.clicked.connect(
+            self.createNewWebsiteButtonPushed
+        )
+
+    def populateExistingFluiDevWebsites(self):
+        """
+        TODO
+        """
+        for website in self.fd_websites:
+            new_row = self.ui.existingWebsitesDisplay.rowCount()
+            self.ui.existingWebsitesDisplay.insertRow(new_row)
+            self.ui.existingWebsitesDisplay.setItem(
+                new_row,
+                0,
+                QTableWidgetItem(website.website_name)
+            )
+            self.ui.existingWebsitesDisplay.setItem(
+                new_row,
+                1,
+                QTableWidgetItem(website.date_created)
+            )
+            self.ui.existingWebsitesDisplay.setItem(
+                new_row,
+                2,
+                QTableWidgetItem(website.date_edited)
+            )
 
     def createNewWebsiteButtonPushed(self):
         """
@@ -233,17 +350,36 @@ class FluiDevWindow(QMainWindow):
 
 def goWithTheFlow():
     """
-    goWithTheFlow creates a QApplication and a QMainWindow. Then it
-    shows the QMainWindow and executes the QApplication. This function
-    starts the application.
+    goWithTheFlow handles all of the necessary aspects of starting the
+    FluiDev application. This consists of creating/initializing the db,
+    creating a QApplication, creating the main FluiDevWindow and then
+    executing the application.
 
     app - QApplication necessary in every PySide application
 
     fluiDevWindow - QMainWindow object that represent the first window
     the user will see when they run the application
     """
+    fd_websites = list()
+    db_file = 'FluiDev.db'
+    db_schema_file = 'FluiDevSchema.sql'
+    db_is_new = not os.path.exists(db_file)
+
+    with sqlite3.connect(db_file) as conn:
+        if db_is_new:
+            with open(db_schema_file, 'rt') as schema_file:
+                schema = schema_file.read()
+            conn.executescript(schema)
+
+        fd_websites = FluiDevWebsite.read(
+            conn,
+            'website_name, website_path, date_created, date_edited',
+            'FluiDevWebsite'
+        )
+    conn.close()
+
     app = QApplication(sys.argv)
-    fluiDevWindow = FluiDevWindow()
+    fluiDevWindow = FluiDevWindow(fd_websites)
     fluiDevWindow.show()
     sys.exit(app.exec_())
 
